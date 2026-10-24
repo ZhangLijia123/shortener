@@ -1,0 +1,15 @@
+# One command startup: `docker compose up`.
+# The H2 database file lives in the mounted ./data volume, so data survives restarts.
+services:
+  app:
+    build: .
+    image: url-shortener:latest
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      BASE_URL: http://localhost:8080
+      STATS_ZONE: UTC
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
