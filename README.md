@@ -80,6 +80,15 @@ curl -i -X POST http://localhost:8080/api/links \
      -d '{"url":"https://example.com/some/very/long/path?query=1"}'
 ```
 
+> **Windows PowerShell 注意**：`curl` 是 `Invoke-WebRequest` 的别名，要写 `curl.exe`；
+> 而且 PowerShell 5.1 会吞掉 JSON 里的双引号，必须转义成
+> `-d '{\"url\":\"https://example.com\"}'`。
+> 更省事的写法：
+> ```powershell
+> Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/links `
+>   -ContentType 'application/json' -Body '{"url":"https://example.com"}'
+> ```
+
 ```http
 HTTP/1.1 201 Created
 Location: http://localhost:8080/aB3xK9
