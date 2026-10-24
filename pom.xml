@@ -23,28 +23,39 @@
     </properties>
 
     <dependencies>
+        <!--
+            Every dependency carries an explicit version so that nothing is resolved
+            dynamically. These are exactly the versions managed by spring-boot-dependencies
+            3.3.5 (the parent above), so they never drift apart; they are spelled out here
+            because the exercise asks for a version on every declared dependency.
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <version>3.3.5</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>3.3.5</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
+            <version>3.3.5</version>
         </dependency>
 
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <version>2.2.224</version>
             <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <version>3.3.5</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

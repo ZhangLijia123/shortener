@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -137,6 +138,26 @@ class LinkApiIntegrationTest {
         mvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(forwardedUrl("index.html"));
+    }
+
+    /**
+     * A Chinese path or query is legal input (http(s), non-blank, under 2048 characters) even
+     * though it is not a legal RFC 3986 URI, so the service must encode it rather than reject it.
+     */
+    @Test
+    void nonAsciiUrlsArePercentEncodedAndStillRedirect() throws Exception {
+        String body = "{\"url\":\"https://example.com/测试?q=中文\"}";
+        String created = mvc.perform(post("/api/links")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body.getBytes(StandardCharsets.UTF_8)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        String code = json.readTree(created).get("code").asText();
+
+        mvc.perform(get("/" + code))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location",
+                        "https://example.com/%E6%B5%8B%E8%AF%95?q=%E4%B8%AD%E6%96%87"));
     }
 
     private String createLink(String url) throws Exception {

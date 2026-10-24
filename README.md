@@ -38,6 +38,16 @@ curl -i -X POST http://localhost:8080/api/links \
 
 打开 <http://localhost:8080> 可以看到一个极简页面，用于创建链接并列出已有链接。
 
+### 构建（可选）
+
+```bash
+./mvnw -DskipTests package                                   # → target/url-shortener-0.0.1-SNAPSHOT.jar
+java -jar target/url-shortener-0.0.1-SNAPSHOT.jar            # 直接跑打好的包
+```
+
+依赖版本全部显式写在 `pom.xml` 里（与 `spring-boot-dependencies 3.3.5` 管理的版本一致），
+不存在动态解析；Java 版本由 `<java.version>17</java.version>` 固定。
+
 ### 没有本地 JDK 时
 
 ```bash
@@ -63,7 +73,7 @@ docker compose up --build
 ./mvnw test        # Windows: mvnw.cmd test
 ```
 
-36 个用例，全部在内存 H2 上运行（`src/test/resources/application-test.yml`），
+39 个用例，全部在内存 H2 上运行（`src/test/resources/application-test.yml`），
 不会碰真实数据库。
 
 ---
@@ -101,6 +111,10 @@ Content-Type: application/json
 
 校验规则：`url` 必须存在且非空白，scheme 必须是 `http` 或 `https`，长度不超过 2048 个字符。
 违反任一条返回 `400`。
+
+URL 里的非 ASCII 字符（例如中文路径、中文查询参数）会自动按 UTF-8 百分号编码后再存储，
+所以 `https://example.com/测试` 能正常创建，跳转时 `Location` 是
+`https://example.com/%E6%B5%8B%E8%AF%95`。含空格等非法字符的 URL 仍然返回 `400`。
 
 ### 重定向
 
@@ -293,10 +307,10 @@ curl -i http://localhost:8080/api/links/aB3xK9/stats
 | `ValidationTest` | 8 种非法请求体都返回 `400` 且 `error` 码符合约定 |
 | `ErrorShapeTest` | 404/405/415 都能反序列化成同一个 `ApiError` 记录；未匹配路径也一样 |
 | `LinkServiceTest` | 撞码 → 重试 → 成功；连续 5 次撞码 → `503`；非法 URL 根本不会碰数据库 |
-| `UrlValidatorTest` | `new URI("not-a-url")` 本身是合法的，所以真正拦下它的是 scheme/host 检查；2048 边界 |
+| `UrlValidatorTest` | `new URI("not-a-url")` 本身是合法的，所以真正拦下它的是 scheme/host 检查；2048 边界；中文自动百分号编码、已有 `%20` 不被二次编码 |
 | `ConcurrencyTest` | 并发重定向不丢计数；并发创建得到互不相同的短码 |
 
-`./mvnw test` 用内存 H2（`src/test/resources/application-test.yml`）跑全部 36 个用例，
+`./mvnw test` 用内存 H2（`src/test/resources/application-test.yml`）跑全部 39 个用例，
 不会碰真实数据库。
 
 ---

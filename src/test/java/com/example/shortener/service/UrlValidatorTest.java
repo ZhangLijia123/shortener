@@ -60,4 +60,16 @@ class UrlValidatorTest {
         assertThatThrownBy(() -> validator.validateAndNormalize("https://example.com/a b"))
                 .isInstanceOf(InvalidUrlException.class);
     }
+
+    @Test
+    void percentEncodesNonAsciiCharactersInsteadOfRejectingThem() {
+        assertThat(validator.validateAndNormalize("https://example.com/测试?q=中文"))
+                .isEqualTo("https://example.com/%E6%B5%8B%E8%AF%95?q=%E4%B8%AD%E6%96%87");
+    }
+
+    @Test
+    void leavesExistingPercentEscapesAlone() {
+        assertThat(validator.validateAndNormalize("https://example.com/a%20b"))
+                .isEqualTo("https://example.com/a%20b");
+    }
 }
